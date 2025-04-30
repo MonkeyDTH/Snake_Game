@@ -1,0 +1,169 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #2c3e50;
+    font-family: "Microsoft YaHei", "SimHei", Arial, sans-serif;
+    color: #ecf0f1;
+    overflow: hidden;
+}
+
+.game-container {
+    position: relative;
+    margin: 20px;
+}
+
+canvas {
+    background-color: #34495e;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-between;
+    width: 400px;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    background-color: #16a085;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 18px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #c0392b;
+}
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(44, 62, 80, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+}
+
+.game-over h2 {
+    color: #e74c3c;
+    margin-top: 0;
+}
+
+/* 排行榜样式 */
+.leaderboard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(44, 62, 80, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.leaderboard h2 {
+    color: #3498db;
+    margin-top: 0;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #3498db;
+}
+
+.leaderboard-table th {
+    background-color: #2980b9;
+    color: white;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.leaderboard-table tr:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+}
+
+.name-input {
+    margin: 10px 0;
+    padding: 8px;
+    width: 80%;
+    border-radius: 5px;
+    border: none;
+}
+
+.mobile-controls {
+    display: none;
+    margin-top: 20px;
+}
+
+.mobile-btn {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    color: white;
+    margin: 5px;
+}
+
+.mobile-btn-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.mobile-btn-up { grid-column: 2; grid-row: 1; }
+.mobile-btn-left { grid-column: 1; grid-row: 2; }
+.mobile-btn-right { grid-column: 3; grid-row: 2; }
+.mobile-btn-down { grid-column: 2; grid-row: 3; }
+
+@media (max-width: 600px) {
+    .mobile-controls {
+        display: block;
+    }
+    canvas {
+        width: 300px;
+        height: 300px;
+    }
+    .score-board {
+        width: 300px;
+    }
+}

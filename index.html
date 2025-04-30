@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>贪吃蛇小游戏</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="score-board">
+        <div>得分：<span id="score">0</span></div>
+        <div>最高分：<span id="highScore">0</span></div>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="game-over" id="gameOver">
+            <h2>游戏结束！</h2>
+            <p>你的得分：<span id="finalScore">0</span></p>
+            <input type="text" id="playerName" class="name-input" placeholder="输入你的名字" maxlength="10">
+            <button class="btn" id="saveScoreBtn">保存分数</button>
+            <button class="btn" id="restartBtn">重新开始</button>
+        </div>
+        
+        <!-- 排行榜界面 -->
+        <div class="leaderboard" id="leaderboard">
+            <h2>排行榜</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>玩家</th>
+                        <th>分数</th>
+                        <th>日期</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- 排行榜数据将在这里动态生成 -->
+                </tbody>
+            </table>
+            <button class="btn" id="closeLeaderboardBtn">关闭</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="startBtn">开始游戏</button>
+        <button class="btn" id="pauseBtn">暂停</button>
+        <button class="btn" id="leaderboardBtn">排行榜</button>
+        <select id="difficultySelect" class="btn">
+            <option value="200">简单</option>
+            <option value="150" selected>中等</option>
+            <option value="100">困难</option>
+            <option value="70">专家</option>
+        </select>
+    </div>
+
+    <div class="mobile-controls">
+        <div class="mobile-btn-container">
+            <button class="mobile-btn mobile-btn-up">↑</button>
+            <button class="mobile-btn mobile-btn-left">←</button>
+            <button class="mobile-btn mobile-btn-right">→</button>
+            <button class="mobile-btn mobile-btn-down">↓</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
