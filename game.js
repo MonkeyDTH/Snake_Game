@@ -575,3 +575,59 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始绘制
     draw();
 });
+
+// 在初始化函数中添加全屏按钮事件
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+fullscreenBtn.addEventListener('click', function() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`全屏错误: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+});
+
+// 添加触摸滑动控制
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    e.preventDefault();
+}, false);
+
+canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+}, false);
+
+canvas.addEventListener('touchend', function(e) {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+    
+    // 判断滑动方向
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // 水平滑动
+        if (dx > 0 && direction !== 'LEFT') {
+            nextDirection = 'RIGHT';
+        } else if (dx < 0 && direction !== 'RIGHT') {
+            nextDirection = 'LEFT';
+        }
+    } else {
+        // 垂直滑动
+        if (dy > 0 && direction !== 'UP') {
+            nextDirection = 'DOWN';
+        } else if (dy < 0 && direction !== 'DOWN') {
+            nextDirection = 'UP';
+        }
+    }
+    
+    e.preventDefault();
+}, false);

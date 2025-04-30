@@ -159,6 +159,11 @@ canvas {
     .mobile-controls {
         display: block;
     }
+    .mobile-btn {
+        width: 70px;  /* 增大按钮尺寸 */
+        height: 70px;
+        font-size: 28px;
+    }
     canvas {
         width: 300px;
         height: 300px;
