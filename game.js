@@ -721,3 +721,35 @@ canvas.addEventListener('touchend', function(e) {
     
     e.preventDefault();
 }, false);
+
+// 调整画布大小和游戏网格
+function resizeGame() {
+    const canvas = document.getElementById('gameCanvas');
+    const computedStyle = window.getComputedStyle(canvas);
+    const width = parseInt(computedStyle.width);
+    const height = parseInt(computedStyle.height);
+    
+    // 设置画布的实际尺寸与CSS尺寸一致
+    canvas.width = width;
+    canvas.height = height;
+    
+    // 重新绘制游戏
+    if (!isGameOver && !isPaused) {
+        draw();
+    }
+}
+
+// 监听窗口大小变化
+window.addEventListener('resize', resizeGame);
+
+// 初始化时调整大小
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    
+    // 调整游戏大小
+    resizeGame();
+    
+    init();
+});
+
+// ... existing code ...

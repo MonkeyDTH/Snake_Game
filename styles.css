@@ -11,28 +11,70 @@ body {
     overflow: hidden;
 }
 
+/* 游戏容器自适应样式 */
 .game-container {
     position: relative;
-    margin: 20px;
+    margin: 0 auto;
+    max-width: 90vw;
+    display: flex;
+    justify-content: center;
 }
 
-canvas {
+/* 画布自适应样式 */
+#gameCanvas {
     background-color: #34495e;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    max-width: 100%;
+    height: auto;
 }
 
+/* 分数板自适应样式 */
 .score-board {
     display: flex;
     justify-content: space-between;
-    width: 400px;
-    margin-bottom: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 15px auto;
     padding: 10px 20px;
     background-color: #16a085;
     color: #fff;
     border-radius: 8px;
     font-size: 18px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* PC端响应式设计 */
+@media (min-width: 768px) {
+    #gameCanvas {
+        width: 600px;
+        height: 600px;
+    }
+    
+    .score-board {
+        width: 600px;
+    }
+    
+    .leaderboard {
+        width: 500px;
+        max-height: 600px;
+    }
+}
+
+@media (min-width: 1200px) {
+    #gameCanvas {
+        width: 800px;
+        height: 800px;
+    }
+    
+    .score-board {
+        width: 800px;
+    }
+    
+    .leaderboard {
+        width: 600px;
+        max-height: 700px;
+    }
 }
 
 .controls {
