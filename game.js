@@ -35,7 +35,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let specialFoodTimer;
     
     // 排行榜数据
-    let leaderboardData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+    let leaderboardData = [];
+    
+    // 服务器地址 - 根据实际部署情况修改
+    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:8080/api' 
+        : '/api'; // 生产环境下使用相对路径
+    
+    // 初始化时从服务器获取排行榜数据
+    fetchLeaderboard();
 
     highScoreDisplay.textContent = highScore;
     
@@ -441,6 +449,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // 从服务器获取排行榜数据
+    function fetchLeaderboard() {
+        fetch(`${API_URL}/leaderboard`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+                return response.json();
+            })
+            .then(data => {
+                leaderboardData = data;
+                updateLeaderboardDisplay();
+            })
+            .catch(error => {
+                console.error('获取排行榜失败:', error);
+                // 如果服务器获取失败，回退到本地存储
+                leaderboardData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+                updateLeaderboardDisplay();
+            });
+    }
+    
     // 保存分数到排行榜
     function saveScore() {
         const playerName = playerNameInput.value.trim() || "匿名玩家";
@@ -456,26 +485,55 @@ document.addEventListener('DOMContentLoaded', function() {
             difficulty: difficultySelect.options[difficultySelect.selectedIndex].text
         };
         
-        // 添加到排行榜数据
-        leaderboardData.push(newEntry);
-        
-        // 按分数排序（从高到低）
-        leaderboardData.sort((a, b) => b.score - a.score);
-        
-        // 只保留前10名
-        if (leaderboardData.length > 10) {
-            leaderboardData = leaderboardData.slice(0, 10);
-        }
-        
-        // 保存到本地存储
-        localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboardData));
-        
-        // 更新排行榜显示
-        updateLeaderboardDisplay();
-        
-        // 隐藏游戏结束界面，显示排行榜
-        gameOverScreen.style.display = 'none';
-        leaderboardScreen.style.display = 'block';
+        // 发送到服务器
+        fetch(`${API_URL}/leaderboard`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newEntry)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('网络响应不正常');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                leaderboardData = data.leaderboard;
+                updateLeaderboardDisplay();
+                
+                // 隐藏游戏结束界面，显示排行榜
+                gameOverScreen.style.display = 'none';
+                leaderboardScreen.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('保存分数失败:', error);
+            
+            // 如果服务器保存失败，回退到本地存储
+            // 添加到排行榜数据
+            leaderboardData.push(newEntry);
+            
+            // 按分数排序（从高到低）
+            leaderboardData.sort((a, b) => b.score - a.score);
+            
+            // 只保留前10名
+            if (leaderboardData.length > 10) {
+                leaderboardData = leaderboardData.slice(0, 10);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboardData));
+            
+            // 更新排行榜显示
+            updateLeaderboardDisplay();
+            
+            // 隐藏游戏结束界面，显示排行榜
+            gameOverScreen.style.display = 'none';
+            leaderboardScreen.style.display = 'block';
+        });
     }
     
     // 更新排行榜显示
@@ -525,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 显示排行榜
     function showLeaderboard() {
+        fetchLeaderboard(); // 每次显示排行榜时从服务器获取最新数据
         leaderboardScreen.style.display = 'block';
     }
     
@@ -545,17 +604,33 @@ document.addEventListener('DOMContentLoaded', function() {
     saveScoreBtn.addEventListener('click', saveScore);
     
     // 移动端控制
-    document.querySelector('.mobile-btn-up').addEventListener('touchstart', () => {
-        if (direction !== 'DOWN') nextDirection = 'UP';
+    const upBtn = document.querySelector('.mobile-btn-up');
+    const leftBtn = document.querySelector('.mobile-btn-left');
+    const rightBtn = document.querySelector('.mobile-btn-right');
+    const downBtn = document.querySelector('.mobile-btn-down');
+    
+    upBtn.addEventListener('click', () => {
+        if (direction !== 'DOWN') {
+            nextDirection = 'UP';
+        }
     });
-    document.querySelector('.mobile-btn-down').addEventListener('touchstart', () => {
-        if (direction !== 'UP') nextDirection = 'DOWN';
+    
+    leftBtn.addEventListener('click', () => {
+        if (direction !== 'RIGHT') {
+            nextDirection = 'LEFT';
+        }
     });
-    document.querySelector('.mobile-btn-left').addEventListener('touchstart', () => {
-        if (direction !== 'RIGHT') nextDirection = 'LEFT';
+    
+    rightBtn.addEventListener('click', () => {
+        if (direction !== 'LEFT') {
+            nextDirection = 'RIGHT';
+        }
     });
-    document.querySelector('.mobile-btn-right').addEventListener('touchstart', () => {
-        if (direction !== 'LEFT') nextDirection = 'RIGHT';
+    
+    downBtn.addEventListener('click', () => {
+        if (direction !== 'UP') {
+            nextDirection = 'DOWN';
+        }
     });
     
     // 阻止移动端滑动时的页面滚动
@@ -576,20 +651,35 @@ document.addEventListener('DOMContentLoaded', function() {
     draw();
 });
 
-// 在初始化函数中添加全屏按钮事件
+// 全屏功能
 const fullscreenBtn = document.getElementById('fullscreenBtn');
+fullscreenBtn.addEventListener('click', toggleFullScreen);
 
-fullscreenBtn.addEventListener('click', function() {
+function toggleFullScreen() {
+    const gameContainer = document.querySelector('.game-container');
+    
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.log(`全屏错误: ${err.message}`);
-        });
+        if (gameContainer.requestFullscreen) {
+            gameContainer.requestFullscreen();
+        } else if (gameContainer.mozRequestFullScreen) { // Firefox
+            gameContainer.mozRequestFullScreen();
+        } else if (gameContainer.webkitRequestFullscreen) { // Chrome, Safari, Opera
+            gameContainer.webkitRequestFullscreen();
+        } else if (gameContainer.msRequestFullscreen) { // IE/Edge
+            gameContainer.msRequestFullscreen();
+        }
     } else {
         if (document.exitFullscreen) {
             document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
         }
     }
-});
+}
 
 // 添加触摸滑动控制
 let touchStartX = 0;
