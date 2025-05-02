@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
@@ -29,8 +30,21 @@ def serve_static(path):
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     try:
+        difficulty = request.args.get('difficulty', None)
+        
         with open(LEADERBOARD_FILE, 'r', encoding='utf-8') as f:
             leaderboard = json.load(f)
+        
+        # 如果指定了难度，则过滤数据
+        if difficulty:
+            leaderboard = [entry for entry in leaderboard if entry.get('difficulty') == difficulty]
+        
+        # 按分数排序
+        leaderboard.sort(key=lambda x: x["score"], reverse=True)
+        
+        # 只返回前10名
+        leaderboard = leaderboard[:10]
+        
         return jsonify(leaderboard)
     except Exception as e:
         print(f"获取排行榜失败: {e}")
@@ -65,18 +79,18 @@ def add_leaderboard_entry():
         # 按分数排序（从高到低）
         leaderboard.sort(key=lambda x: x["score"], reverse=True)
         
-        # 只保留前20名
-        if len(leaderboard) > 20:
-            leaderboard = leaderboard[:20]
-        
         # 保存回文件
         with open(LEADERBOARD_FILE, 'w', encoding='utf-8') as f:
             json.dump(leaderboard, f, ensure_ascii=False)
         
-        return jsonify({"success": True, "leaderboard": leaderboard})
+        # 获取当前难度的前10名
+        filtered_leaderboard = [entry for entry in leaderboard if entry.get('difficulty') == difficulty]
+        filtered_leaderboard = filtered_leaderboard[:10]
+        
+        return jsonify({"success": True, "leaderboard": filtered_leaderboard})
     except Exception as e:
         print(f"添加排行榜记录失败: {e}")
         return jsonify({"error": "添加排行榜记录失败"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=7400, debug=True)

@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveScoreBtn = document.getElementById('saveScoreBtn');
     const playerNameInput = document.getElementById('playerName');
     const leaderboardBody = document.getElementById('leaderboardBody');
-
+    const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+    
     // 游戏变量
     const gridSize = 20; // 每个格子的大小
     let snake = [{x: 160, y: 200}, {x: 140, y: 200}, {x: 120, y: 200}];
@@ -33,13 +34,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let isPaused = false;
     let isGameOver = false;
     let specialFoodTimer;
+    let walls = []; // 新增墙壁数组
+    let lastScoreThreshold = 0; // 记录上次触发墙壁增加的分数
     
     // 排行榜数据
     let leaderboardData = [];
+    let currentDifficulty = '中等'; // 默认显示中等难度的排行榜
     
     // 服务器地址 - 根据实际部署情况修改
     const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:8080/api' 
+        ? 'http://localhost:7400/api' 
         : '/api'; // 生产环境下使用相对路径
     
     // 初始化时从服务器获取排行榜数据
@@ -73,6 +77,64 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 随机生成特殊食物
         scheduleSpecialFood();
+
+        // 添加触摸事件监听
+        canvas.addEventListener('touchstart', handleTouchStart, false);
+        canvas.addEventListener('touchmove', handleTouchMove, false);
+
+        // 绑定难度按钮点击事件
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // 更新当前选中状态
+                difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 更新当前难度并刷新排行榜
+                currentDifficulty = this.dataset.difficulty;
+                fetchLeaderboard(currentDifficulty);
+            });
+        });
+
+        walls = []; // 清空墙壁
+        lastScoreThreshold = 0; // 重置分数阈值
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }
+    
+    function handleTouchMove(e) {
+        if (!touchStartX || !touchStartY) return;
+        
+        const touchEndX = e.touches[0].clientX;
+        const touchEndY = e.touches[0].clientY;
+        
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+        
+        if (Math.abs(dx) > Math.abs(dy)) {
+            // 水平滑动
+            if (dx > 0 && direction !== 'LEFT') {
+                nextDirection = 'RIGHT';
+            } else if (dx < 0 && direction !== 'RIGHT') {
+                nextDirection = 'LEFT';
+            }
+        } else {
+            // 垂直滑动
+            if (dy > 0 && direction !== 'UP') {
+                nextDirection = 'DOWN';
+            } else if (dy < 0 && direction !== 'DOWN') {
+                nextDirection = 'UP';
+            }
+        }
+        
+        touchStartX = 0;
+        touchStartY = 0;
+        e.preventDefault();
     }
 
     function scheduleSpecialFood() {
@@ -84,11 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
         specialFoodTimer = setTimeout(() => {
             generateSpecialFood();
             
-            // 特殊食物存在5秒
+            // 特殊食物存在5-10秒随机
+            const duration = Math.floor(Math.random() * 5000) + 5000; // 5-10秒随机
             setTimeout(() => {
                 specialFood = null;
                 scheduleSpecialFood();
-            }, 5000);
+            }, duration);
         }, randomTime);
     }
 
@@ -128,6 +191,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // 每100分增加一个墙壁
+        if (score >= lastScoreThreshold + 100) {
+            lastScoreThreshold = Math.floor(score / 100) * 100;
+            generateWall();
+        }
+        
+        // 检测墙壁碰撞
+        if (walls.some(wall => head.x === wall.x && head.y === wall.y)) {
+            gameOver();
+            return;
+        }
+
         snake.unshift(head);
 
         // 吃到食物
@@ -146,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ate = true;
             specialFood = null;
             scheduleSpecialFood();
+            playSound('eat');
         }
         
         if (ate) {
@@ -173,12 +249,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function draw() {
-        // 清空画布
-        ctx.fillStyle = '#34495e';
+        // 清空画布 - 使用更深的背景色
+        ctx.fillStyle = '#1a2b3c';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // 绘制网格（可选）
-        ctx.strokeStyle = '#2c3e50';
+        // 绘制网格 - 使用更亮的线条
+        ctx.strokeStyle = '#3d566e';
         for (let i = 0; i < canvas.width; i += gridSize) {
             ctx.beginPath();
             ctx.moveTo(i, 0);
@@ -192,18 +268,15 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.stroke();
         }
 
-        // 绘制蛇
+        // 绘制蛇 - 使用更鲜艳的颜色
         snake.forEach((segment, index) => {
-            // 蛇头和蛇身使用不同颜色
             if (index === 0) {
-                ctx.fillStyle = '#2ecc71'; // 蛇头颜色
+                ctx.fillStyle = '#00ff88'; // 更亮的蛇头颜色
             } else {
                 // 渐变色蛇身
-                const greenValue = Math.floor(46 + (index * 5) % 150);
-                ctx.fillStyle = `rgb(46, ${greenValue}, 113)`;
+                const greenValue = Math.floor(100 + (index * 10) % 150);
+                ctx.fillStyle = `rgb(0, ${greenValue}, 180)`;
             }
-            
-            // 圆角矩形
             roundRect(ctx, segment.x, segment.y, gridSize, gridSize, 5);
             
             // 蛇头添加眼睛
@@ -265,10 +338,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 显示分值
             ctx.fillStyle = '#fff';
-            ctx.font = 'bold 10px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(`${specialFood.points}x`, specialFood.x + gridSize/2, specialFood.y + gridSize/2 + 3);
         }
+
+        // 绘制墙壁
+        ctx.fillStyle = '#7f8c8d'; // 墙壁颜色
+        walls.forEach(wall => {
+            roundRect(ctx, wall.x, wall.y, gridSize, gridSize, 2);
+        });
         
         // 如果游戏暂停，显示暂停信息
         if (isPaused) {
@@ -392,6 +471,24 @@ document.addEventListener('DOMContentLoaded', function() {
         } while (snake.some(segment => segment.x === food.x && segment.y === food.y));
     }
 
+    function generateWall() {
+        let newWall;
+        do {
+            newWall = {
+                x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+                y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
+            };
+        } while (
+            // 确保不生成在蛇、食物或已有墙壁上
+            snake.some(segment => segment.x === newWall.x && segment.y === newWall.y) ||
+            (food.x === newWall.x && food.y === newWall.y) ||
+            (specialFood && specialFood.x === newWall.x && specialFood.y === newWall.y) ||
+            walls.some(wall => wall.x === newWall.x && wall.y === newWall.y)
+        );
+        
+        walls.push(newWall);
+    }
+
     function gameOver() {
         clearInterval(gameInterval);
         if (specialFoodTimer) clearTimeout(specialFoodTimer);
@@ -450,8 +547,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 从服务器获取排行榜数据
-    function fetchLeaderboard() {
-        fetch(`${API_URL}/leaderboard`)
+    function fetchLeaderboard(difficulty = currentDifficulty) {
+        fetch(`${API_URL}/leaderboard?difficulty=${encodeURIComponent(difficulty)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('网络响应不正常');
@@ -465,7 +562,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('获取排行榜失败:', error);
                 // 如果服务器获取失败，回退到本地存储
-                leaderboardData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+                const allData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+                leaderboardData = allData.filter(entry => entry.difficulty === difficulty);
+                leaderboardData.sort((a, b) => b.score - a.score);
+                leaderboardData = leaderboardData.slice(0, 10);
                 updateLeaderboardDisplay();
             });
     }
@@ -580,10 +680,21 @@ document.addEventListener('DOMContentLoaded', function() {
             leaderboardBody.appendChild(row);
         }
     }
-    
+     
     // 显示排行榜
     function showLeaderboard() {
-        fetchLeaderboard(); // 每次显示排行榜时从服务器获取最新数据
+        // 获取当前选择的难度
+        fetchLeaderboard(currentDifficulty);
+        
+        // 更新难度按钮的激活状态
+        difficultyButtons.forEach(btn => {
+            if(btn.getAttribute('data-difficulty') === currentDifficulty) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
         leaderboardScreen.style.display = 'block';
     }
     
@@ -602,12 +713,20 @@ document.addEventListener('DOMContentLoaded', function() {
     leaderboardBtn.addEventListener('click', showLeaderboard);
     closeLeaderboardBtn.addEventListener('click', hideLeaderboard);
     saveScoreBtn.addEventListener('click', saveScore);
+    fullscreenBtn.addEventListener('click', toggleFullScreen);
     
-    // 移动端控制
-    const upBtn = document.querySelector('.mobile-btn-up');
-    const leftBtn = document.querySelector('.mobile-btn-left');
-    const rightBtn = document.querySelector('.mobile-btn-right');
-    const downBtn = document.querySelector('.mobile-btn-down');
+    // 添加难度按钮的事件监听
+    difficultyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 移除所有按钮的active类
+            difficultyButtons.forEach(btn => btn.classList.remove('active'));
+            // 给当前点击的按钮添加active类
+            this.classList.add('active');
+            // 更新当前难度并获取对应的排行榜数据
+            currentDifficulty = this.getAttribute('data-difficulty');
+            fetchLeaderboard(currentDifficulty);
+        });
+    });
     
     upBtn.addEventListener('click', () => {
         if (direction !== 'DOWN') {
@@ -650,36 +769,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始绘制
     draw();
 });
-
-// 全屏功能
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-fullscreenBtn.addEventListener('click', toggleFullScreen);
-
-function toggleFullScreen() {
-    const gameContainer = document.querySelector('.game-container');
-    
-    if (!document.fullscreenElement) {
-        if (gameContainer.requestFullscreen) {
-            gameContainer.requestFullscreen();
-        } else if (gameContainer.mozRequestFullScreen) { // Firefox
-            gameContainer.mozRequestFullScreen();
-        } else if (gameContainer.webkitRequestFullscreen) { // Chrome, Safari, Opera
-            gameContainer.webkitRequestFullscreen();
-        } else if (gameContainer.msRequestFullscreen) { // IE/Edge
-            gameContainer.msRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
-    }
-}
 
 // 添加触摸滑动控制
 let touchStartX = 0;
@@ -744,12 +833,13 @@ window.addEventListener('resize', resizeGame);
 
 // 初始化时调整大小
 document.addEventListener('DOMContentLoaded', function() {
-    // ... existing code ...
+    // 获取难度选择器元素
+    initDifficultySelector();
     
     // 调整游戏大小
     resizeGame();
     
     init();
-});
 
-// ... existing code ...
+    draw();
+});

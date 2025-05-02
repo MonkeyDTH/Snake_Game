@@ -32,10 +32,11 @@ body {
 /* 分数板自适应样式 */
 .score-board {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* 改为左对齐 */
+    gap: 30px; /* 添加间距 */
     width: 100%;
     max-width: 800px;
-    margin: 0 auto 15px auto;
+    margin: 0 0 15px 20px; /* 左边距20px */
     padding: 10px 20px;
     background-color: #16a085;
     color: #fff;
@@ -198,19 +199,81 @@ body {
 .mobile-btn-down { grid-column: 2; grid-row: 3; }
 
 @media (max-width: 600px) {
+    body {
+        touch-action: none; /* 禁用默认触摸行为 */
+        overflow: hidden; /* 隐藏滚动条 */
+        height: 100vh;
+    }
+    
     .mobile-controls {
-        display: block;
+        display: none; /* 隐藏方向按钮 */
     }
-    .mobile-btn {
-        width: 70px;  /* 增大按钮尺寸 */
-        height: 70px;
-        font-size: 28px;
+    
+    #gameCanvas {
+        touch-action: none; /* 禁用画布上的默认触摸行为 */
     }
-    canvas {
-        width: 300px;
-        height: 300px;
+    
+    .game-container {
+        max-height: 80vh;
     }
+    
+    #gameCanvas {
+        width: 100%;
+        height: auto;
+        max-height: 60vh;
+    }
+    
     .score-board {
-        width: 300px;
+        width: 100%;
+        margin-bottom: 10px;
     }
+    
+    .controls {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+        margin: 3px;
+    }
+    
+    .mobile-controls {
+        margin-top: 10px;
+    }
+    
+    .mobile-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    footer {
+        margin-top: 10px;
+        font-size: 12px;
+    }
+}
+
+
+/* 难度选择器样式 */
+.difficulty-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.difficulty-btn {
+    background-color: #3498db;
+    opacity: 0.7;
+    margin: 0 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.difficulty-btn.active {
+    background-color: #2980b9;
+    opacity: 1;
 }

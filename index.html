@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>贪吃蛇小游戏</title>
+    <title>古早贪吃蛇</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="styles.css">
@@ -25,6 +25,12 @@
         <!-- 排行榜界面 -->
         <div class="leaderboard" id="leaderboard">
             <h2>排行榜</h2>
+            <div class="difficulty-selector">
+                <button class="btn difficulty-btn active" data-difficulty="简单">简单</button>
+                <button class="btn difficulty-btn" data-difficulty="中等">中等</button>
+                <button class="btn difficulty-btn" data-difficulty="困难">困难</button>
+                <button class="btn difficulty-btn" data-difficulty="专家">专家</button>
+            </div>
             <table class="leaderboard-table">
                 <thead>
                     <tr>
@@ -46,7 +52,6 @@
         <button class="btn" id="startBtn">开始游戏</button>
         <button class="btn" id="pauseBtn">暂停</button>
         <button class="btn" id="leaderboardBtn">排行榜</button>
-        <button class="btn" id="fullscreenBtn">全屏</button>
         <select id="difficultySelect" class="btn">
             <option value="200">简单</option>
             <option value="150" selected>中等</option>
@@ -55,14 +60,11 @@
         </select>
     </div>
 
-    <div class="mobile-controls">
-        <div class="mobile-btn-container">
-            <button class="mobile-btn mobile-btn-up">↑</button>
-            <button class="mobile-btn mobile-btn-left">←</button>
-            <button class="mobile-btn mobile-btn-right">→</button>
-            <button class="mobile-btn mobile-btn-down">↓</button>
-        </div>
-    </div>
+    <footer>
+        <p>古早贪吃蛇 v1.1.0</p>
+        <p>作者: TH | 更新日期: 2025.04.30</p>
+        <p>本产品仅供个人使用</p>
+    </footer>
 
     <script src="game.js"></script>
 </body>
